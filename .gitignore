@@ -1,0 +1,9 @@
+# IDE + Python caches
+.idea/
+__pycache__/
+*.ipynb_checkpoints
+
+# Generated stuff
+logfiles/
+results/
+models/

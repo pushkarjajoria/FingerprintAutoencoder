@@ -1,0 +1,32 @@
+# HTCondor submit description file: all_experiments.submit
+
+universe            = docker
+docker_image        = nvidia/cuda:12.4.0-runtime-ubuntu22.04
+docker_pull_policy  = always
+initialdir          = /nethome/pjajoria
+executable          = /nethome/pjajoria/Github/FingerprintAutoencoder/autoencoder.sh
+transfer_executable = False
+
+output              = /nethome/pjajoria/Github/FingerprintAutoencoder/logfiles/all.$(Cluster).$(Process).out
+error               = /nethome/pjajoria/Github/FingerprintAutoencoder/logfiles/all.$(Cluster).$(Process).err
+log                 = /nethome/pjajoria/Github/FingerprintAutoencoder/logfiles/all.$(Cluster).log
+
+request_CPUs        = 1
+request_memory      = 10G
+request_GPUs        = 1
+
+# Only need to set requirements once
+requirements = (machine=="cl17lx.lsv.uni-saarland.de") || (machine=="cl18lx.lsv.uni-saarland.de")
+
+# Arguments passed to the script: model name and task name
+arguments = "$(compression)"
+
+# Queue the job
+queue compression from(
+    0.05
+    0.10
+    0.15
+    0.20
+    0.25
+    0.30
+)
