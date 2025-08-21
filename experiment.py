@@ -44,8 +44,8 @@ else:
 #     "molformer+compressed_fp_10",
 # ]
 FEATURE_EXTRACTORS = [
-    "stereo_fingerprint",
-    "molformer+stereo_fingerprint"
+    "mapc",
+    "molformer+mapc"
 ]
 
 PREDICTION_HEADS = ["mlp_1", "mlp_2", "mlp_3", "random_forest"]
@@ -81,6 +81,17 @@ def stereo_fingerprint(smiles: List[str]) -> np.ndarray:
         arr = np.zeros((1,), dtype=np.int8)
         DataStructs.ConvertToNumpyArray(bv, arr := np.zeros((2048,), dtype=np.float32))
         fps[i] = arr
+    return fps
+
+
+def mapc(smiles: List[str]) -> np.ndarray:
+    "https://github.com/reymond-group/mapchiral"
+    "MinHashed Atom-Pair Fingerprint Chiral"
+    fps = np.zeros((len(smiles), 2048), dtype=np.float32)
+    for i, smi in enumerate(smiles):
+        mol = Chem.MolFromSmiles(smi)
+        fingerprint = encode(mol, max_radius=2, n_permutations=2048, mapping=False)
+        fps[i] = fingerprint.astype(np.float32) / (2 ** 32 - 1)
     return fps
 
 
@@ -163,6 +174,9 @@ def extract_features(smiles_list: List[str], feature_type: str, batch_size: int 
 
     if feature_type == "stereo_fingerprint":
         return stereo_fingerprint(smiles_list)
+
+    if feature_type == "mapc":
+        return mapc(smiles_list)
 
     if feature_type.startswith("compressed_fp"):
         comp = feature_type.split("_")[-1]
@@ -356,7 +370,7 @@ def main():
 
     # Save results
     os.makedirs(args.output_dir, exist_ok=True)
-    output_path = os.path.join(args.output_dir, "results_inflamnet_stereofps.json")
+    output_path = os.path.join(args.output_dir, "results_inflamnet_mapc.json")
     with open(output_path, "w") as f:
         json.dump(res, f, indent=2)
 
